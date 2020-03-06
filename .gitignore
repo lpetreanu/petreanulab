@@ -1,0 +1,14 @@
+## file types
+*.tif
+*.tiff
+*.xsg
+*.asv # windows temp
+*DS_Store
+*.doc
+*.ppt
+*.pptx
+*.qcamraw
+*.m~ # mac temp
+
+## folders
+figures #folder named figures
