@@ -5,7 +5,7 @@
 
 
 ## Step 1: crop your eye videos to only include the animal's eye
-### - eyeVidChopper.m does this and aligns to frames from ScanImage (if you use SI to trigger the eye camera frames)
-### - eyePrep.m does this for other eye movies. you can input all the sessions you have and it will crop them all (script is currently from Gabi's FB silencing experiment, but can be adapted for other experiments)
+#### - eyeVidChopper.m does this and aligns to frames from ScanImage (if you use SI to trigger the eye camera frames)
+#### - eyePrep.m does this for other eye movies. you can input all the sessions you have and it will crop them all (script is currently from Gabi's FB silencing experiment, but can be adapted for other experiments)
 
 ## Step 2: adapt parameters to your lighting and recording conditions 
