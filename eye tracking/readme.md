@@ -14,10 +14,13 @@ Check out [this figure](https://www.frontiersin.org/files/Articles/2035/fnins-04
 
 ### Step 2: adapt parameters to your lighting and recording conditions 
 
-In EyeBatchAnalyzer, you will create a set of parameters for the eye tracking algorithm to use. This will be saved in the same folder as the eye movies, so you will always know what you used. Set the displayFlag=2 in EyeBatchAnalyzer, and the dbug =1 in analyzeThatPupil to visualize how the parameters affect your tracker.
+In EyeBatchAnalyzer, you will create a set of parameters for the eye tracking algorithm to use. This will be saved in the same folder as the eye movies, so you will always know what you used. Set the displayFlag=1 in EyeBatchAnalyzer, and the dbug=1 in analyzeThatPupil to visualize how the parameters affect your tracker.
 _add explanations of parameters here_
 
-### Step 3: visualize your results, detect saccades
+### Step 3: run the eye tracker
+In EyeBatchAnalyzer set displayFlag=2; in analyzeThatPupil, set dbug=0 and let 'er rip!
+
+### Step 4: visualize your results, detect saccades
 This part is not very developed, but you can see some examples and first steps in eyePlot.m (agian, written for Gabi's FB silencing project, but can be adapted).
 
 
