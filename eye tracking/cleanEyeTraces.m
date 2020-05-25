@@ -1,5 +1,6 @@
 function cleanResults =...
     cleanEyeTraces(results)
+% written by Tiago Marques
 
 %% Inputs
 max_mov=5;
