@@ -18,7 +18,7 @@ In EyeBatchAnalyzer, you will create a set of parameters for the eye tracking al
 _add explanations of parameters here_
 
 ### Step 3: run the eye tracker
-In EyeBatchAnalyzer set displayFlag=2; in analyzeThatPupil, set dbug=0 and let 'er rip!
+Once you have optimized the params values, you're ready to go! In EyeBatchAnalyzer set displayFlag=2; in analyzeThatPupil, set dbug=0 and let 'er rip! Remember to check the videos with the fitted pupil (they will be called 'fit_' + your original filename) to make sure your tracker stayed on course throughout the session.
 
 ### Step 4: visualize your results, detect saccades
 This part is not very developed, but you can see some examples and first steps in eyePlot.m (agian, written for Gabi's FB silencing project, but can be adapted).
