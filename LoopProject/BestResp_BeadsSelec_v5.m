@@ -47,7 +47,7 @@ if selection == 1
         selec =  data.beadID.bead_pos;
     end
 elseif selection == 0
-    selec = one(1,size(data.data_sorted,1));
+    selec = ones(1,size(data.data_sorted,1));
 end
 % selec = logical(selec);
 
@@ -155,7 +155,7 @@ meanResp_selec = squeeze(nanmean(median(selVisStim(:,tAna,:,:),4,'omitnan'),2));
 s1 = scatter(meanResp_selec(~selec,1),meanResp_selec(~selec,2),...
     'MarkerFaceColor',color_bn,'MarkerEdgeColor','none');
 s1.MarkerFaceAlpha = 0.2;
-scatter(meanResp_selec(selec,1),meanResp_selec(selec,2),...
+scatter(meanResp_selec(h_vis&selec,1),meanResp_selec(h_vis&selec,2),...
    'MarkerFaceColor',color_bp,'MarkerEdgeColor','none');
 xl = xlim; yl = ylim;
 axismax = max(xl(2),yl(2));
@@ -378,7 +378,7 @@ figure; hold on
 s1 = scatter(meanResp_spont(~selec,1),meanResp_spont(~selec,2),...
     'MarkerFaceColor',color_bn,'MarkerEdgeColor','none');
 s1.MarkerFaceAlpha = 0.2;
-scatter(meanResp_spont(selec,1),meanResp_spont(selec,2),...
+scatter(meanResp_spont(h_vis&selec,1),meanResp_spont(h_vis&selec,2),...
    'MarkerFaceColor',color_bp,'MarkerEdgeColor','none');
 
 [~,p_all] = ttest(meanResp_spont(:,1),meanResp_spont(:,2));

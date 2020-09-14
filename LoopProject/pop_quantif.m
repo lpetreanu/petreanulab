@@ -2,10 +2,11 @@
 % load('E:\TempData\CMloop19\20200306_pos5\analysis\quantif_CMloop19_pos5_run2.mat')
 
 % pop_quantif({q_18_1,q_18_2,q_18_3_90um,q_18_3_150um,q_18_3_1,q_18_3_2,q_19_1,q_19_2,q_19_3,q_19_4,q_19_5_1,q_19_5_2,q_19_6_1,q_19_6_2,q_22_1_1,q_22_1_2,q_22_1_3,q_22_1_4,q_22_2},1)
+% l33_p2,l33_p3,l33_p4,l33_p5,l34_p1,l34_p2,l34_p3,l34_p4,l38_pos2,l38_pos3,l40_pos1,l40_pos2,l40_pos3,l41_pos1,l41_pos2,l41_pos3
 function pop_quantif(data_list,saveFig)
 %% Preanbule
 
-magn_th = 0.15; %0.15
+magn_th = 0.05; %0.15
 % ############################################
 
 tv = datestr(now, 'yyyy_mm_dd');
@@ -25,7 +26,7 @@ if saveFig
     end
 end
 
-% check for duplicates
+%% check for duplicates
 for i = 1:length(data_list)
    sessionName{i} = data_list{i}.Info.saveName;
 end
@@ -43,7 +44,7 @@ end
 color_bp = [0.8500 0.3250 0.0980];
 color_bn = [0      0.4470 0.7410];
 
-%  some definiitions
+%% some definiitions
 meanResp_vis = [];
 h_vis = [];
 

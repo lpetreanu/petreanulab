@@ -108,7 +108,7 @@ for j = 1:length(Ftraces_all)
     if selection
         ROIs_pl{j} = logical(fTraces.s2p.iscell);
     else
-        ROIs_pl{j} = true(size(fTraces.s2p.iscell,1));
+        ROIs_pl{j} = true(size(fTraces.s2p.iscell));
     end
     nROIs(j) = size(fTraces.data,1);
     

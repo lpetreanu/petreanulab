@@ -5,18 +5,19 @@
 % Simply give path to main position folder. Script is gonna import the
 % different Fall values
 
+% clear all
 % clearvars -except SessionData numberOfFrames saved_history IntrinsicCoord Ftraces_all;
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 all_ROI = 1;
 
-foldername = 'E:\TempData\CMloop33\20200617\pos5_stim'; % folder where all the files are located
+foldername = 'E:\TempData\CMloop45\20200908\pos1Anesth_stim'; % folder where all the files are located
 % GenericFile_name = 'CMloop34_pos4*'; % 20190828_CMad47_pos1__00003
-DataID = 'CMloop33_pos5';
-skipNofFrames = 1; % skip the extraction of number of frames from tiff files, coz it's an input
+DataID = 'CMloop45_pos1_anesth';
+skipNofFrames = 1; % to skip the extraction of number of frames from tiff files (using SI tiff reader), use s2p output instead
 
-isFlyBack = 1;
+isFlyBack = 1; % Only matters if multiple planes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -36,7 +37,6 @@ if length(index)>1
 else
     plane = 'single';
 end
-disp(['number of planes: ', num2str(length(index))])
 
 dt = datestr(now,'yyyymmdd');
 
@@ -50,7 +50,10 @@ oldfolder = cd(saveFolder);
 diaryName = ['FtracesLog_' dt];
 diary off; diary(diaryName)
 cd(oldfolder)
+
 saveName = ['Ftraces_' DataID '_' dt];
+
+disp(['number of planes: ', num2str(length(index))])
 disp(saveFolder); disp(saveName);
 
 %% Chopp all the Fall file of each plane

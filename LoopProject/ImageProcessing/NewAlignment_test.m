@@ -1,5 +1,5 @@
 function path = NewAlignment_test(channel2)
-threshold = 60; %3800;
+threshold = 1000; %3800;
 [stack_fileName, path] = uigetfile({'E:\TempData\*.*'},'Load a z-stack');
 % 'E:\TempData\CMloop6\20200121_day8\CMloop6_da8_zstack\CMloop6_day8_L2_zStack_00001_00001.tif');
 [~,zStack]=opentif([path stack_fileName]);
@@ -64,6 +64,12 @@ end
 % end
 
 max_shift = max(max(max(abs(outputs(:,:,3)))), max(max(abs(outputs(:,:,4)))));
+if max_shift == 0
+     source_reg_crop = data_c1;
+     if channel2
+     source_reg_crop_c2 = data_c2;
+     end
+else
 source_reg = NaN(size(source,1)+2*max_shift,size(source,2)+2*max_shift,30,11);
 source_reg_c2 = NaN(size(source,1)+2*max_shift,size(source,2)+2*max_shift,30,11);
 for i = 1:size(data_c1,4)
@@ -78,6 +84,7 @@ for i = 1:size(data_c1,4)
             source_reg_crop_c2(:,:,ii,i) = source_reg_c2(max_shift:max_shift+size(source,1)-1,max_shift:max_shift+size(source,2)-1,ii,i);
         end
     end
+end
 end
 
 %% save tiffs

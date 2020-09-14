@@ -82,6 +82,7 @@ elseif selection == 0
 end
 selec = logical(selec);
 
+V1 = find(data.Info.timeStimInd, 1, 'first'); V2 = find(data.Info.timeStimInd, 1, 'last');
 %% Caluclate the impact of laser on spont or visual-evoked activity
 meanResp = nanmean(data.data_sorted,6);
 stdResp = std(data.data_sorted,[],6,'omitnan')./sqrt(size(data.data_sorted,6));
@@ -156,7 +157,9 @@ for i = 1:size(meanResp,1)
         if IndivROIFigFlag
             maxYval = max(max(max(meanResp(i,:,:,iii,:)+stdResp(i,:,:,iii,:),[],2)));
             minYval = min(min(min(meanResp(i,:,:,iii,:)-stdResp(i,:,:,iii,:),[],2)));
-            figure;
+            maxYval = max(maxYval,0.4);
+            
+            figure; % --- average respponse figure
             for ii = 1:nDir+1 % actual # of vis stim directions + no vis stim trial
                 subtightplot(3,3,plotDirOrder(ii),[],0.1,0.1); hold on
                 g1 = fill([timeVect(xvect) flip(timeVect(xvect))],...
@@ -198,6 +201,42 @@ for i = 1:size(meanResp,1)
             end
             sgtitle({['ROI ' num2str(i) ' | Mean traces'],captionText{iii}})
             screen2png([saveIndivROIsDir '\ROI' num2str(i) '_' num2str(2*iii-1)]);
+            pause(0.1)
+            close
+            
+            figure; % --- individual trials figure
+            for ii = 1:nDir+1 % actual # of vis stim directions + no vis stim trial
+                subtightplot(3,3,plotDirOrder(ii),[],0.1,0.1); hold on
+                datatoplot = [squeeze(data.data_sorted(i,xvect,ii,iii,1,:));NaN(1,20);squeeze(data.data_sorted(i,xvect,ii,iii,2,:)) ];
+                h = imagesc(datatoplot',[minYval maxYval]);
+                imAlpha=ones(size(datatoplot));  % to render the NaNs transparent
+                imAlpha(isnan(datatoplot(:,1)),:)=0;
+                h.AlphaData = imAlpha';
+                set(gca,'color',[.5 .5 .5]); % set the background color to gray
+                colormap 'gray'
+                axis ij
+                plot([V1-find(xvect, 1, 'first') V1-find(xvect, 1, 'first')],[0 data.Info.nRep], 'r:')
+                plot([V2-find(xvect, 1, 'first') V2-find(xvect, 1, 'first')],[0 data.Info.nRep], 'r:')
+                plot([find(xvect, 1, 'last')+V1-find(xvect, 1, 'first') find(xvect, 1, 'last')+V1-find(xvect, 1, 'first')],[0 data.Info.nRep], 'r:')
+                plot([find(xvect, 1, 'last')+V2-find(xvect, 1, 'first') find(xvect, 1, 'last')+V2-find(xvect, 1, 'first')],[0 data.Info.nRep], 'r:')
+                if plotDirOrder(ii) == 7
+                    ax = gca;
+                    %                 ax.XTick = [V1-find(xvect, 1, 'first') V2-find(xvect, 1, 'first')];
+                    ax.XTick = [V1-find(xvect, 1, 'first') V2-find(xvect, 1, 'first') find(xvect, 1, 'last')+V1-find(xvect, 1, 'first') find(xvect, 1, 'last')+V2-find(xvect, 1, 'first') ];
+                    ax.XTickLabel = [data.Info.xstim_vis(1) data.Info.xstim_vis(2) data.Info.xstim_vis(1) data.Info.xstim_vis(2)];
+                    xlabel('Time (s)')
+                    ylabel('Trials')
+                elseif plotDirOrder(ii) == 9
+                    c = colorbar;
+                    c.Label.String = 'dF/F';
+                    c.Position = [0.91 0.1 0.01 0.25]; %[x y width height]
+                else
+                    set(gca,'xtick',[])
+                    set(gca,'ytick',[])
+                end
+            end
+            sgtitle({['ROI ' num2str(i) ' - Individual trials | LaserOFF (left) vs LaserON (right)'],captionText{iii}})
+            screen2png([saveIndivROIsDir '\ROI' num2str(i) '_allTrials_' num2str(2*iii-1)]);
             pause(0.1)
             close
         end
@@ -267,22 +306,35 @@ for i = 1:size(meanResp,1)
     
     % -----------------------------
     if nSF == 2
-y = squeeze(circshift(dir_tuning(i,1:8,:,:),-2,2));
+        y = squeeze(circshift(dir_tuning(i,1:8,:,:),-2,2));
     else
-    y(1:8,1,:)=circshift(dir_tuning(i,1:8,:,:),-2,2);
+        y(1:8,1,:)=circshift(dir_tuning(i,1:8,:,:),-2,2);
     end
     directions = -90:45:225;
+    
+    %     gauss2Eqn = '(a1*exp(-((x-b1)/c1)^2) + a2*exp(-((x-b2)/c2)^2))+k'; %k is a constant that can be negative
+    %     options = fitoptions(gauss2Eqn);
+    %         options.Lower = [0 0 0 180 0 0 -Inf];
+    %     options.Upper = [Inf Inf 0 180 Inf Inf Inf];
     
     options = fitoptions('gauss2');
     options.Lower = [0 0 0 0 180 0];
     options.Upper = [Inf 0 Inf Inf 180 Inf];
     
+    
     for  iii = 1:nSF
         if h_vis(i,iii)
             y1 = squeeze(y(:,iii,1));
+            %             y1 = y1-mean([y1(1:2);y1(4:6);y1(8)]);
+            y1 = y1-min(y1);
+
             [f1, gof1] = fit(directions.',y1,'gauss2',options);
+            % [f1, gof1] = fit(directions.',y1,gauss2Eqn,options);           
             y2 = squeeze(y(:,iii,2));
+            %             y2 = y2-mean([y2(1:2);y2(4:6);y2(8)]);
+            y2 = y2-min(y2);
             [f2, gof2] = fit(directions.',y2,'gauss2',options);
+            % [f2, gof2] = fit(directions.',y2,gauss2Eqn,options);
             
             a1(i,iii,1) = f1.a1;
             a2(i,iii,1) = f1.a2;

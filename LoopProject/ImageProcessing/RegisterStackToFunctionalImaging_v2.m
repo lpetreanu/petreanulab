@@ -52,9 +52,12 @@ for i = 1:num_images
     source_crop = source(crop(1):512-2*crop(1),crop(2):512-2*crop(2));
     fft_source = fft2(source_crop);
     [output, ~] = dftregistration(fft_target,fft_source,1);
-    outputs(i,:) = output;
+    % replace that by non-rigid?
+    % [output_temp,~] = imregdemons(target_crop,source_crop,[8 4],'AccumulatedFieldSmoothing',2,'PyramidLevels',2,'DisplayWaitBar',false); 
+    %    output = mean([abs(mean2(output_temp(:,:,1))) abs(mean2(output_temp(:,:,2)))]);
+outputs(i,:) = output;
 end
-% find best plane = lower error.
+% find best plane = lowest error.
 [~,b] = min(outputs,[],1);
 source = imread([path source_filename], b(1) ,'Info', info);
 
@@ -62,10 +65,9 @@ fprintf('Best plane is %g \nShift in x and y are: %g, %g\n' , b(1), outputs(b(1)
 fileName = [path,'\reg_metrics_p', num2str(j), '.mat'];
 save(fileName,'outputs')
 
-
 %% load corresponding image in channel 2
 try % Using "NewAlignment"
-    source_filename_c2 = [source_filename(1:end-5), '2.tif'];
+    source_filename_c2 = [source_filename(1:end-8), '2', source_filename(end-6:end)];
     path_2 = path;
     info_2 = imfinfo([path_2 source_filename_c2]);
 catch
@@ -182,7 +184,8 @@ if num_images >1
     source_c2_reg(max_shift+1+outputs(b(1),3):size(source,1)+max_shift+1+outputs(b(1),3)-1,max_shift+1+outputs(b(1),4):size(source,1)+max_shift+1+outputs(b(1),4)-1) = source_c2;
     source_c2_reg_crop = source_c2_reg(max_shift:max_shift+size(source,1)-1,max_shift:max_shift+size(source,2)-1);
     
-    
+%    [displacement,source_reg_crop] = imregdemons(source_reg_crop,target,[8 4],'AccumulatedFieldSmoothing',2,'PyramidLevels',2,'DisplayWaitBar',false); 
+
     % for display purposes
     a = min(min(source_reg_crop)) ;
     isnan(source_reg_crop);
@@ -191,6 +194,7 @@ if num_images >1
     a = min(min(source_c2_reg_crop)) ;
     isnan(source_c2_reg_crop);
     source_c2_reg_crop(ans) = a;%-10;
+    
     
     % save the images
     source_reg_crop = int16(source_reg_crop);
@@ -233,7 +237,34 @@ if num_images >1
     end
     close(tt4)
     
-    
+%     %%%%% Non-rigid reg test
+%     test = source_reg_crop(crop(1):512-2*crop(1),crop(2):512-2*crop(2));
+%         test = source(crop(1):512-2*crop(1),crop(2):512-2*crop(2));
+% 
+%        [~,source_NRreg] = imregdemons(test,target_crop,[32 16 8 4],'AccumulatedFieldSmoothing',3,'PyramidLevels',4,'DisplayWaitBar',false); 
+% figure;imshowpair(target_crop, source_NRreg)
+% imshowpair(target_crop, test)
+%        %            [displacement,source_NRreg] = imregdemons(source_reg_crop,target,[8 4],'AccumulatedFieldSmoothing',2,'PyramidLevels',2,'DisplayWaitBar',false); 
+% source_NRreg2 = a*ones(512,512);
+% source_NRreg2(crop(1):512-2*crop(1),crop(2):512-2*crop(2)) = source_NRreg;
+% source_NRreg2= int16(source_NRreg2);
+%        filename_c1 = [path source_filename(1:end-4) '_NRreg_test2.tif'];
+%     tt=Tiff(filename_c1,'w');
+%    
+%     tagstruct.ImageLength = size(source_NRreg2,1);
+%     tagstruct.ImageWidth = size(source_NRreg2,2);
+%     tagstruct.Photometric = Tiff.Photometric.MinIsBlack;
+%     tagstruct.BitsPerSample = 16;
+%     tagstruct.SamplesPerPixel = 1;
+%     tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
+%     tagstruct.SampleFormat=Tiff.SampleFormat.Int;
+%     
+%     tt.setTag(tagstruct);
+%     tt.write(source_NRreg2);
+%     tt.writeDirectory()
+%     close(tt)
+%     %%%%%
+
     %% apply x and y shifts to the stacks
     if regStack
         for i = 1:num_images
@@ -293,6 +324,7 @@ if num_images >1
         end
         close(tt)
         
+        clear source_reg_stack source_c2_reg_stack
         for ii = 1:size(source_c2_reg_crop,3)
             tt2.setTag(tagstruct);
             tt2.write(source_c2_reg_crop(:,:,ii));
