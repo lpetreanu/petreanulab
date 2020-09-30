@@ -5,7 +5,7 @@ Analysis pipeline (as of June 15, 2020)
 	classifier in E:\TempData
 2. Run "AfterSuite2p_v2.m". Replaces "AfterSuite2p_singlePlane.m"
 	/!\ Don't delete FlyBack frame folder, because the code is discarding the last plane
-	Works for both single plane and multiple planes. If multiple planes, assumes that their is a FlyBack frame to be discarded.
+	Works for both single plane and multiple planes. Assumes that their is a FlyBack frame to be discarded.
 	Input: Solely change the main folder name and "saveName"
 	Output: Ftraces_all
 	Also generates a log file
@@ -30,28 +30,38 @@ Analysis pipeline (as of June 15, 2020)
 		Outputs: path. It's a global and will be used directly as an input of the next function
 			 plane-averaged z-stack, with channels splitted if ischannel2 = 1.)
 --- OR -----
-4b "fast_zStack_avg.m" if structural stack obtained using fast-z (to get the same tilt as during imaging)
+4b "fast_zStack_avg.m" if structural stack obtained using fast-z (to get the same tilt during imaging)
 
-5. RegisterStackToFunctionalImaging_v2
+################# to update: ###################
+5. ProcessZstack_all
+	Combine the following functions:
+################################################
+
+5.1 RegisterStackToFunctionalImaging_v2
 	/!\ Check the file names next time runing it after "NewAlignment_test.m"
 	Inputs: data (output from "SortData_PhotoStim_CM_v3")
-		crop. Number of pixels to crop from the left and right-end sides. Typically [0 0] for L2/3, [25 25] is good for L5 (to eliminate pixels with light contamination)
+		rescale_factor. If ~= 1, rescale the z-stack by this factor. Ex: If z-stack and functional imaging have been acquired with different resolution (e.g, 512x512 for z-stack and 1024x1024 for imaging) set it to 0.5
 		regStack. Register all planes in the z-stack and save it / only save the best plane if set to 0.
 		path. Path to the z-stacks
 	Outputs: Tiff files. Registered best planes and average with one plane above/below + registred z-stack if regStack = 1.
 		 saves the "rescale_factor" in data.s2p
-	If the z-stack and the functional imaging are not acquired using the same pixel resolution (e.g, 512x512 for z-stack and 1024x1024 for imaging), it rescales automatically the functional imaging mean image.
 	If the variable "path" is not in the workspace, the function asks where is the path to the stacks.
 	Also Runs "PlotROIsMasks_2"
 # 6. PlotROIsMasks_2
 
-####### Manual Identification of bead pos cells ################
+--------> Manual Identification of bead pos cells <--------
 
-7. "IDfying_redCells.m" Also updated for multiple planes
+7.1 "IDfying_redCells.m" Updated for multiple planes
 	Inputs: data.mat file (output from 3.)
 		x and y coordinates of the identified bead+ cells
 	Outputs: saves data.beads_pos
 		 saves the tiff of s2p meanImg overlaid with masks and cross over bead pos cells
+
+7.2 "ValidateCells_IDfyRedCells.m"
+	Update of "IDfying_redCells.m" to a analyze ROIs masks confirmed as cells in the z-stack
+	Inputs: data.mat file (output from 3.)
+		beads{j}[]; ImageJ measure with x and y coordinates (in coloumns 5 and 6) of the identified bead+ cells
+		cells{j}[]; ImageJ measure with x and y coordinates (in coloumns 5 and 6) of the confirmed cells
 
 8.2 "BestResp_BeadsSelec_v5.m"
 	Inputs: data, selection, RespLag, comp_mthd, alpha, IndivROI, saveFig, SessionData

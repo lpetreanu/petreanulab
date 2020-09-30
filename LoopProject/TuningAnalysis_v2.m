@@ -1,6 +1,6 @@
 % load('E:\TempData\CMloop\tuning_CMloopAll_30April2020.mat')
 
-function TuningData = TuningAnalysis_v2(data,do_MF,saveFig,varargin)
+function TuningData = TuningAnalysis_v2(data,do_MF,looped_cells,saveFig,varargin)
 %% dir_tuning does not contain the no-visual stim stim type
 
 %% Preambule - set parameters
@@ -15,8 +15,10 @@ Fig_IndivROI = 0; % if "PlotIndivROIs.m" has been run, these plots have been gen
 % - fetch the data
 dir_tuning = data.dir_tuning;
 try
-    h_vis = data.fit.h_vis;
+    h_vis = cat(1,data.fit(:).h_vis);
+    %     h_vis = data.fit.h_vis;    
 catch
+%     h_vis = data.fit.h_vis;    
     h_vis = data.h_vis;
 end
 
@@ -43,6 +45,7 @@ else
     bead_cat = bead;
 end
 
+
 if Fig_IndivROI
     captionText =[];
     for j =  1:nSF
@@ -52,8 +55,13 @@ if Fig_IndivROI
     saveIndivROIsDir = [mainDir filesep 'Figures' filesep 'IndivROIs'];
 end
 
+if looped_cells
 color_bp = [0.8500 0.3250 0.0980];
 color_bn = [0      0.4470 0.7410];
+else
+ color_bp = [0.4940 0.1840 0.5560]; 
+ color_bn = color_bp;
+end
 %%
 
 %% 1) Modulation Factor
@@ -130,10 +138,10 @@ if ~isfield(data,'fit') || do_MF
     data.fit.gof = gof;
     data.fit.sigma = sigma;
 else
-    MF = data.fit.MF;
+    MF = cat(1,data.fit(:).MF);
 %     Error = data.fit.Error;
-    gof = data.fit.gof;
-    sigma = data.fit.sigma;
+    gof = cat(1,data.fit(:).gof);
+    sigma = cat(1,data.fit(:).sigma);
 end
 % fitselec = Error(:,:,1) < error_th & Error(:,:,2) < error_th;
 fitselec = gof(:,:,1) > 1-error_th & gof(:,:,2) > 1-error_th;
@@ -194,17 +202,22 @@ all_Bpos_sem = std(MF_cat(hVis_cat&bead_cat,:),[],1)./sqrt(sum(hVis_cat&bead_cat
 all_Bneg_sem = std(MF_cat(hVis_cat&~bead_cat,:),[],1)./sqrt(sum(hVis_cat&~bead_cat));
 
 MF_Figure = figure;
-if isfield(data, 'beads_pos') && sum(hVis_cat&k_cat&bead_cat,1)>=4
-if ~adtest(MF_cat(hVis_cat&k_cat&bead_cat,1)) && ~adtest(MF_cat(hVis_cat&k_cat&~bead_cat,1))
-    [~,p]= ttest2(MF_cat(hVis_cat&k_cat&bead_cat,:),MF_cat(hVis_cat&k_cat&~bead_cat,:));
-    testName = 'ttest';
+if looped_cells
+    if isfield(data, 'beads_pos') && sum(hVis_cat&k_cat&bead_cat,1)>=4
+        if ~adtest(MF_cat(hVis_cat&k_cat&bead_cat,1)) && ~adtest(MF_cat(hVis_cat&k_cat&~bead_cat,1))
+            [~,p]= ttest2(MF_cat(hVis_cat&k_cat&bead_cat,:),MF_cat(hVis_cat&k_cat&~bead_cat,:));
+            testName = 'ttest';
+        else
+            [p,~]= ranksum(MF_cat(hVis_cat&k_cat&bead_cat,1),MF_cat(hVis_cat&k_cat&~bead_cat,1));
+            testName = 'Wilcoxon';
+        end
+    else
+        testName = ''; p=[];
+    end
 else
-    [p,~]= ranksum(MF_cat(hVis_cat&k_cat&bead_cat,1),MF_cat(hVis_cat&k_cat&~bead_cat,1));
-    testName = 'Wilcoxon';
+        testName = 'No stat'; p=[];
 end
-else
-    testName = ''; p=[];
-end
+
 subplot(1,4,1); hold on
 b2 = bar([fit_sel_Bpos' fit_sel_Bneg'],'FaceColor','flat');
 drawnow
@@ -233,12 +246,16 @@ title({['Selected data, (fit error < ' num2str(error_th) ')'],[testName ', p = '
 ylabel('Opto Modulation Factor')
 
 subplot(1,4,3); hold on
-if isfield(data, 'beads_pos') && sum(hVis_cat&k_cat&bead_cat,1)>=4
-if ~adtest(MF_cat(hVis_cat&bead_cat,1)) && ~adtest(MF_cat(hVis_cat&~bead_cat,1))
-    [~,p]= ttest2(MF_cat(hVis_cat&bead_cat,:),MF_cat(hVis_cat&~bead_cat,:));
+if looped_cells
+    if isfield(data, 'beads_pos') && sum(hVis_cat&k_cat&bead_cat,1)>=4
+        if ~adtest(MF_cat(hVis_cat&bead_cat,1)) && ~adtest(MF_cat(hVis_cat&~bead_cat,1))
+            [~,p]= ttest2(MF_cat(hVis_cat&bead_cat,:),MF_cat(hVis_cat&~bead_cat,:));
+        else
+            p = ranksum(MF_cat(hVis_cat&bead_cat,1),MF_cat(hVis_cat&~bead_cat,1));
+        end
+    end
 else
-    p = ranksum(MF_cat(hVis_cat&bead_cat,1),MF_cat(hVis_cat&~bead_cat,1));
-end
+    p = 'NaN';
 end
 
 b3 = bar([all_Bpos' all_Bneg'],'FaceColor','flat');
@@ -274,6 +291,7 @@ lg2.ItemTokenSize = [10,4];
 %
 % tuning.modulation_factor.MF = MF;
 % tuning.modulation_factor.error_selec = k;
+subplot(1,4,4); hold on
 if adtest(MF_cat(hVis_cat&k_cat,1)) 
     p=signrank(MF_cat(hVis_cat&k_cat,1));
     testName = 'Wilcoxon';
@@ -281,10 +299,13 @@ else
     [~,p]=ttest(MF_cat(hVis_cat&k_cat,1));
     testName = 'ttest';
 end
-subplot(1,4,4); hold on
-violin(MF_cat(hVis_cat&k_cat,1),'xlabel',{'All fit selected cells'},'facecolor',[0.5 0.5 0.5],'edgecolor','none','FaceAlpha',1);
+
+violin({MF_cat(hVis_cat&k_cat,1),MF_cat(hVis_cat&k_cat,2)},'facecolor',[0.5 0.5 0.5],'edgecolor','none','FaceAlpha',1);
 plot(xlim,[0 0],'k--')
-title([testName ', p = ' num2str(p,3)]);
+xlabel('direction','FontSize',10)
+xticks([1 2])
+xticklabels([{'Pref.'},{'Antipref.'}])
+title({'All fit selected cells',[testName ', p = ' num2str(p,3)]},'FontSize',10);
 set(gcf,'Units','Normalized','Position',[0.05 0.05 0.7 0.5])
 
 %%
@@ -403,14 +424,14 @@ ratioFR = cat(1,ratioFR(:,1),ratioFR(:,2));
 % normOpto_cat = squeeze(cat(1,norm_opto(:,:,1,:),norm_opto(:,:,2,:)));
 
 PolarFig = figure;
-pos1 = [0.05 0.2 0.4 0.8];
+pos1 = [0.05 0.2 0.4 0.75];
 subplot('Position',pos1);
 p1 = polarplot(deg2rad(0:45:360),tuning_bn(:,1),'k');
 hold on
 p2 =polarplot(deg2rad(0:45:360),tuning_bn(:,2),'Color',color_bn);
 % polarplot(deg2rad(0:45:360),squeeze(mean(normOpto_cat(hVis_cat&~bead_cat,:,2))),'Color',color_bn);
 % % apparently need to re-align to pref direction BEFORE normalization ----
-pos2 = [0.56 0.2 0.4 0.8];
+pos2 = [0.56 0.2 0.4 0.75];
 subplot('Position',pos2);
 p3 = polarplot(deg2rad(0:45:360),tuning_bp(:,1),'k');
 hold on
@@ -448,12 +469,12 @@ title('beads-')
 subplot('Position',pos2);
 lg2 = legend([p3,p4],{'Laser OFF','Laser ON'});
 title('beads+')
-pos3 = [0.05 0.1 0.9 0.1];
+pos3 = [0.05 0.05 0.9 0.1];
 subplot('Position',pos3); axis off
 % subplot(2,2,[3,4]); axis off
-lg1.Position = [0.2 0.1 0.15 0.05];
+lg1.Position = [0.2 0.05 0.15 0.05];
 lg1.ItemTokenSize = [20,2];
-lg2.Position = [0.65 0.1 0.15 0.05];
+lg2.Position = [0.65 0.05 0.15 0.05];
 lg2.ItemTokenSize = [20,2];
 xl = xlim; yl = ylim;
 text(xl(1),yl(2),{[sprintf('vector length = %.3g, angle = %.4g \n',r1(1),mu1(1)),...
@@ -479,17 +500,18 @@ max2 = temp(:,5,:);
 max2 = repmat(max2,1,9,1);
 norm_opto = temp./max2;
 normOpto_cat = squeeze(cat(1,norm_opto(:,:,1,:),norm_opto(:,:,2,:)));
-normOptoCat_bn = squeeze(mean(normOpto_cat(hVis_cat&~bead_cat,:)));
-normOptoCat_bp = squeeze(mean(normOpto_cat(hVis_cat&bead_cat,:)));
+normOptoCat_bn = squeeze(mean(normOpto_cat(hVis_cat&~bead_cat&dirSel,:)));
+normOptoCat_bp = squeeze(mean(normOpto_cat(hVis_cat&bead_cat&dirSel,:)));
 clear temp
 
 PolarFig2 = figure;
-pos1 = [0.05 0.2 0.4 0.8];
+pos1 = [0.05 0.2 0.4 0.7]; % [left bottom width height]
 subplot('Position',pos1);
 p1 = polarplot(deg2rad(0:45:360),tuning_bn(:,1),'k');
 hold on
 p2 = polarplot(deg2rad(0:45:360),normOptoCat_bn,'Color',color_bn);
-pos2 = [0.56 0.2 0.4 0.8];
+
+pos2 = [0.56 0.2 0.4 0.7];
 subplot('Position',pos2);
 p3 = polarplot(deg2rad(0:45:360),tuning_bp(:,1),'k');
 hold on
@@ -518,12 +540,13 @@ title('beads-')
 subplot('Position',pos2);
 lg2 = legend([p3,p4],{'Laser OFF','Laser ON'});
 title('beads+')
-pos3 = [0.05 0.1 0.9 0.1];
+
+pos3 = [0.05 0.05 0.9 0.1];
 subplot('Position',pos3); axis off
 % subplot(2,2,[3,4]); axis off
-lg1.Position = [0.2 0.1 0.15 0.05];
+lg1.Position = [0.2 0.05 0.15 0.05];
 lg1.ItemTokenSize = [20,2];
-lg2.Position = [0.65 0.1 0.15 0.05];
+lg2.Position = [0.65 0.05 0.15 0.05];
 lg2.ItemTokenSize = [20,2];
 xl = xlim; yl = ylim;
 text(xl(1),yl(2),{[sprintf('vector length = %.3g, angle = %.4g \n',r1(1),mu1(1)),...
@@ -576,19 +599,21 @@ clear bla
 lg4 = legend([p11,p12,lh1],{'laser OFF, average','laser ON, average','laser ON, all data'});
 end
 
-subplot(1,4,4); hold on
-bla = normCtrl_merged(hVis_cat&~bead_cat&dirSel,:,:);
-for i = 1:sum(hVis_cat&~bead_cat&dirSel)
-    lh2 = plot(squeeze(bla(i,:,2)),'-','Color',color_bn);
-    lh2.Color=[color_bn 0.05];
+if looped_cells
+    subplot(1,4,4); hold on
+    bla = normCtrl_merged(hVis_cat&~bead_cat&dirSel,:,:);
+    for i = 1:sum(hVis_cat&~bead_cat&dirSel)
+        lh2 = plot(squeeze(bla(i,:,2)),'-','Color',color_bn);
+        lh2.Color=[color_bn 0.05];
+    end
+    plot(tuning_bn(:,1),'k-','LineWidth',2);
+    plot(tuning_bn(:,2),'k--','LineWidth',2);
+    xticks(1:2:9); xticklabels({'-180','-90','Pref.','+90','+180'});
+    xlabel('Directions'); ylabel('dFF, norm')
+    title('All bead- cells')
+    ylim([yl(1) yl(2)]);
+    lg5 = legend(lh2,'laser ON, all data');
 end
-plot(tuning_bn(:,1),'k-','LineWidth',2);
-plot(tuning_bn(:,2),'k--','LineWidth',2);
-xticks(1:2:9); xticklabels({'-180','-90','Pref.','+90','+180'});
-xlabel('Directions'); ylabel('dFF, norm')
-title('All bead- cells')
-ylim([yl(1) yl(2)]);
-lg5 = legend(lh2,'laser ON, all data');
 
 subplot(1,4,2); axis off
 lg3.Position = [0.3 0.7 0.13 0.1]; lg3.ItemTokenSize = [20,4];
@@ -598,17 +623,6 @@ lg5.Position = [0.3 0.1 0.13 0.1]; lg5.ItemTokenSize = [20,2];
 set(gcf,'Units','Normalized','Position',[0.05 0.4 0.7 0.3])
 %%
 %% 2.3.1 quantification of vect. length for each cell ---------------
-tuning_bn_all = normCtrl_merged(hVis_cat&~bead_cat&dirSel,1:8,:);
-for i = 1:size(tuning_bn_all,1)
-    for ii = 1:2
-        w = squeeze(tuning_bn_all(i,:,ii));
-        w( w < 0) = 0;
-        r = sum(w.*exp(1i*alpha),2);
-        mu_bn(i,ii) = angle(r);
-        r_bn(i,ii) = abs(r)./sum(w,2);
-    end
-end
-
 tuning_bp_all = normCtrl_merged(hVis_cat&bead_cat&dirSel,1:8,:);
 for i = 1:size(tuning_bp_all,1)
     for ii = 1:2
@@ -619,11 +633,27 @@ for i = 1:size(tuning_bp_all,1)
         r_bp(i,ii) = abs(r)./sum(w,2);
     end
 end
-rBn_mean = nanmean(r_bn);
-rBn_sem = std(r_bn,[],1,'omitnan')./sqrt(size(r_bn,1));
 rBp_mean = nanmean(r_bp);
 rBp_sem = std(r_bp,[],1,'omitnan')./sqrt(size(r_bp,1));
 
+if looped_cells
+    tuning_bn_all = normCtrl_merged(hVis_cat&~bead_cat&dirSel,1:8,:);
+    for i = 1:size(tuning_bn_all,1)
+        for ii = 1:2
+            w = squeeze(tuning_bn_all(i,:,ii));
+            w( w < 0) = 0;
+            r = sum(w.*exp(1i*alpha),2);
+            mu_bn(i,ii) = angle(r);
+            r_bn(i,ii) = abs(r)./sum(w,2);
+        end
+    end
+else
+    r_bn = zeros(size(r_bp));
+    r_bn = zeros(size(r_bp));
+end
+rBn_mean = nanmean(r_bn);
+rBn_sem = std(r_bn,[],1,'omitnan')./sqrt(size(r_bn,1));
+    
 VectorLength_Fig = figure;
 subplot(1,3,1); hold on
 b = bar([rBn_mean' rBp_mean']);
@@ -665,11 +695,16 @@ else
 testName = 'ttest';
 end
 end
+yl = ylim;
 title([testName,', p = ' num2str(p)])
 set(gcf,'Units','Normalized','Position',[0.4 0.4 0.4 0.3])
 
 subplot(1,3,3); hold on
+if looped_cells
 r_all = cat(1,r_bn,r_bp); delta_rall = r_all(:,2)-r_all(:,1);
+else
+    delta_rall = r_bp(:,2)-r_bp(:,1);
+end
 violin(delta_rall,'xlabel',{'All Cells'},'facecolor',[0.5 .5 .5],'edgecolor','none');
 plot(xlim,[0 0],'k--');
 if adtest(delta_rall)
@@ -679,12 +714,14 @@ else
     [~,p] = ttest(delta_rall);
     testName = 'ttest';
 end
+ylim(yl)
 title([testName,', p = ',num2str(p,3)])
 % title('Forcing neg values to 0');
 %%
 
 %% 2.3.2 Vector length as a function of dFF change (laser ON vs laser OFF)
 VectLengthVsAct_Fig = figure;
+if looped_cells
 subplot(2,3,1); hold on
 scatter(deltaFR(hVis_cat&~bead_cat&dirSel),delta_rBn,...
     'MarkerFaceColor',color_bn,'MarkerEdgeColor','none','MarkerFaceAlpha',0.2);
@@ -695,6 +732,7 @@ plot(deltaFR(hVis_cat&~bead_cat&dirSel),Bn_ci, 'color',color_bn,'LineStyle',':')
 ylabel('delta Vector Length')
 title('Bead-')
 xlabel('delta dFF, pref vis stim')
+end
 
 subplot(2,3,3); hold on
 scatter(deltaFR(hVis_cat&bead_cat&dirSel),delta_rBp,...
@@ -708,15 +746,18 @@ xlabel('delta dFF, pref vis stim')
 
 subplot(2,3,2); axis off
 xl = xlim; yl =ylim;
+if looped_cells
 text(xl(1),yl(2),...
     sprintf('bead- \n slope = %.3g \n adj. r2 = %.3g',table2array(Bn_mdl.Coefficients(2,1)),Bn_mdl.Rsquared.Adjusted),...
     'HorizontalAlignment','left','VerticalAlignment','top');
+end
 text(xl(2),yl(1),...
     sprintf('bead+ \n slope = %.3g \n adj. r2 = %.3g',table2array(Bp_mdl.Coefficients(2,1)),Bp_mdl.Rsquared.Adjusted),...
     'HorizontalAlignment','right','VerticalAlignment','bottom');
 clear Bp_mdl Bp_pred Bp_ci
 clear Bn_mdl Bn_pred Bn_ci
 
+if looped_cells
 subplot(2,3,4); hold on
 scatter(ratioFR(hVis_cat&~bead_cat&dirSel),delta_rBn,...
     'MarkerFaceColor',color_bn,'MarkerEdgeColor','none','MarkerFaceAlpha',0.2);
@@ -726,6 +767,7 @@ plot(ratioFR(hVis_cat&~bead_cat&dirSel),Bn_pred,'-','color',color_bn);
 plot(ratioFR(hVis_cat&~bead_cat&dirSel),Bn_ci, 'color',color_bn,'LineStyle',':');
 ylabel('delta Vector Length')
 xlabel('ratio dFF, pref vis stim')
+end
 
 subplot(2,3,6); hold on
 scatter(ratioFR(hVis_cat&bead_cat&dirSel),delta_rBp,...
@@ -738,9 +780,11 @@ xlabel('ratio dFF, pref vis stim')
 
 subplot(2,3,5); axis off
 xl = xlim; yl =ylim;
+if looped_cells
 text(xl(1),yl(2),...
     sprintf('bead- \n slope = %.3g \n adj. r2 = %.3g',table2array(Bn_mdl.Coefficients(2,1)),Bn_mdl.Rsquared.Adjusted),...
     'HorizontalAlignment','left','VerticalAlignment','top');
+end
 text(xl(2),yl(1),...
     sprintf('bead+ \n slope = %.3g \n adj. r2 = %.3g',table2array(Bp_mdl.Coefficients(2,1)),Bp_mdl.Rsquared.Adjusted),...
     'HorizontalAlignment','right','VerticalAlignment','bottom');
@@ -828,6 +872,10 @@ for i = 1:size(normCtrl_merged,1)
             slope_bn(c_bn) = table2array(indivCell_mdl{i}.Coefficients(2,1));
         end
     end
+end
+
+if looped_cells == 0
+    slope_bn = slope_bp;
 end
 
 data_violin{1} = slope_bn;
@@ -1327,6 +1375,7 @@ dDSI_bp = mean(deltaDSI(hVis_cat&bead_cat&dirSel));
 dDSI_bn_sem = std(deltaDSI(hVis_cat&~bead_cat&dirSel))/sqrt(sum(hVis_cat&~bead_cat&dirSel));
 dDSI_bp_sem = std(deltaDSI(hVis_cat&bead_cat&dirSel))/sqrt(sum(hVis_cat&bead_cat&dirSel));
 
+if looped_cells
 if isfield(data, 'beads_pos') && sum(hVis_cat&bead_cat&dirSel)>=4
     if ~adtest(deltaDSI(hVis_cat&~bead_cat&dirSel)) && ~adtest(deltaDSI(hVis_cat&bead_cat&dirSel))
         [~,p] = ttest2(deltaDSI(hVis_cat&~bead_cat&dirSel),deltaDSI(hVis_cat&bead_cat&dirSel));
@@ -1337,6 +1386,9 @@ if isfield(data, 'beads_pos') && sum(hVis_cat&bead_cat&dirSel)>=4
     end
 else
     testName = '';
+end
+else
+    testName = ''; p= [];
 end
 
 subplot(2,4,3); hold on
@@ -1362,10 +1414,12 @@ s2 = scatter(deltaFR(hVis_cat&bead_cat&dirSel),deltaDSI(hVis_cat&bead_cat&dirSel
 xlabel('delta dFF of pref vis stim')
 ylabel('delta DSI')
 
+if looped_cells
 BnDSIsub_mdl= fitlm(deltaFR(hVis_cat&~bead_cat&dirSel),deltaDSI(hVis_cat&~bead_cat&dirSel),'linear');
 [BnDSIsub_pred, BnDSIsub_ci] = predict(BnDSIsub_mdl,deltaFR(hVis_cat&~bead_cat&dirSel));
 plot(deltaFR(hVis_cat&~bead_cat&dirSel),BnDSIsub_pred,'-','color',color_bn);
 plot(deltaFR(hVis_cat&~bead_cat&dirSel),BnDSIsub_ci, 'color',color_bn,'LineStyle',':');
+end
 
 BpDSIsub_mdl= fitlm(deltaFR(hVis_cat&bead_cat&dirSel),deltaDSI(hVis_cat&bead_cat&dirSel),'linear');
 [BpDSIsub_pred, BpDSIsub_ci] = predict(BpDSIsub_mdl,deltaFR(hVis_cat&bead_cat&dirSel));
@@ -1379,10 +1433,12 @@ s2 = scatter(ratioFR(hVis_cat&bead_cat&dirSel),deltaDSI(hVis_cat&bead_cat&dirSel
     'MarkerFaceColor',color_bp,'MarkerEdgeColor','none','MarkerFaceAlpha',0.2);
 xlabel('ratio dFF of pref vis stim')
 
+if looped_cells
 BnDSIdiv_mdl= fitlm(ratioFR(hVis_cat&~bead_cat&dirSel),deltaDSI(hVis_cat&~bead_cat&dirSel),'linear');
 [BnDSIdiv_pred, BnDSIdiv_ci] = predict(BnDSIdiv_mdl,ratioFR(hVis_cat&~bead_cat&dirSel));
 plot(ratioFR(hVis_cat&~bead_cat&dirSel),BnDSIdiv_pred,'-','color',color_bn);
 plot(ratioFR(hVis_cat&~bead_cat&dirSel),BnDSIdiv_ci, 'color',color_bn,'LineStyle',':');
+end
 
 BpDSIdiv_mdl= fitlm(ratioFR(hVis_cat&bead_cat&dirSel),deltaDSI(hVis_cat&bead_cat&dirSel),'linear');
 [BpDSIdiv_pred, BpDSIdiv_ci] = predict(BpDSIdiv_mdl,ratioFR(hVis_cat&bead_cat&dirSel));
@@ -1391,6 +1447,7 @@ plot(ratioFR(hVis_cat&bead_cat&dirSel),BpDSIdiv_ci, 'color',color_bp,'LineStyle'
 
 subplot(2,4,6); axis off
 xl = xlim; yl = ylim;
+if looped_cells
 text(xl(1),yl(2),{['bead- delta FR, slope = ', num2str(table2array(BnDSIsub_mdl.Coefficients(2,1)),3),'; adj. r2 = ' num2str(BnDSIsub_mdl.Rsquared.Adjusted,3)],...
     ['bead+ delta FR, slope = ', num2str(table2array(BpDSIsub_mdl.Coefficients(2,1)),3),'; adj. r2 = ' num2str(BpDSIsub_mdl.Rsquared.Adjusted,3)]},...
     'HorizontalAlignment','Left','VerticalAlignment','Top')
@@ -1398,6 +1455,7 @@ text(xl(2),yl(1),{['bead- ratio FR, slope = ', num2str(table2array(BnDSIdiv_mdl.
     ['bead+ ratio FR, slope = ', num2str(table2array(BpDSIdiv_mdl.Coefficients(2,1)),3),'; adj. r2 = ' num2str(BpDSIdiv_mdl.Rsquared.Adjusted,3)]},...
     'HorizontalAlignment','Right','VerticalAlignment','Top')
 set(gcf,'Units','Normalized','Position',[0.05 0.4 0.7 0.5])
+end
 
 subplot(2,4,4); hold on
 dDSI_all = deltaDSI(hVis_cat&dirSel);
@@ -1559,7 +1617,7 @@ for i = 8:-1:1 % if you increment i, it's gonna delete the empty cell and change
 end
 
 pos1 = [0.1 0.55 0.9 0.4];
-subplot('Position',pos1); hold on
+subplot('Position',pos1); hold on %[left bottom width height]
 v = violin(data_violin,'facecolor',color_bn,'edgecolor','none','FaceAlpha',1);
 % violin(data_violin,'xlabel',{'DS bead-','DS bead+','OS bead-','OS bead+'},...
 %     'facecolor',color_bn,'edgecolor','none','FaceAlpha',1);
@@ -1571,7 +1629,9 @@ for i = 1:2:size(data_violin,2)
 end
 xl = xlim;
 plot(xlim,[0.35 0.35],'k:')
-plot([4.5 4.5],ylim,'k--')
+xl = xlim;
+x_size = xl(1)+xl(2);
+plot([x_size/2 x_size/2],ylim,'k--')
 text(xl(1),0.35,'{\it DS cells threshold}','FontSize',8,'Color',[.5 .5 .5],...
 'HorizontalAlignment','left','VerticalAlignment','top')
 ylabel('DSI')
@@ -1609,7 +1669,9 @@ for i = 2:2:size(data_violin,2)
     v(i).FaceColor = color_bp;
 end
 plot(xlim,[0 0],'k:')
-plot([2.5 2.5],ylim,'k--')
+xl = xlim;
+x_size = xl(1)+xl(2);
+plot([x_size/2 x_size/2],ylim,'k--')
 legend([v(1),v(2)],{'bead-','bead+'},...
     'NumColumns',2,'FontSize',6, 'Location', 'northeast')
 legend box off
@@ -1617,35 +1679,44 @@ xticks([])
 ylabel('delta DSI')
 clear data_violin
 
-if isfield(data, 'beads_pos') && sum(hVis_cat&bead_cat&dirSel&DS)>=4
-if ~adtest(deltaDSI(hVis_cat&~bead_cat&dirSel&DS)) && ~adtest(deltaDSI(hVis_cat&bead_cat&dirSel&DS))
-[~,p1] = ttest2(deltaDSI(hVis_cat&~bead_cat&dirSel&DS),deltaDSI(hVis_cat&bead_cat&dirSel&DS));
-testName1 = 'ttest';
+if looped_cells
+    if isfield(data, 'beads_pos') && sum(hVis_cat&bead_cat&dirSel&DS)>=4
+        if ~adtest(deltaDSI(hVis_cat&~bead_cat&dirSel&DS)) && ~adtest(deltaDSI(hVis_cat&bead_cat&dirSel&DS))
+            [~,p1] = ttest2(deltaDSI(hVis_cat&~bead_cat&dirSel&DS),deltaDSI(hVis_cat&bead_cat&dirSel&DS));
+            testName1 = 'ttest';
+        else
+            p1 = ranksum(deltaDSI(hVis_cat&~bead_cat&dirSel&DS),deltaDSI(hVis_cat&bead_cat&dirSel&DS));
+            testName1 = 'wilcoxon';
+        end
+    else
+        testName1 = '';
+    end
 else
-   p1 = ranksum(deltaDSI(hVis_cat&~bead_cat&dirSel&DS),deltaDSI(hVis_cat&bead_cat&dirSel&DS));
-   testName1 = 'wilcoxon';
-end
-else
-    testName1 = '';
+    testName2 = ''; p1 = [];
 end
 xtickangle(45)
 title([testName, ', p = ' num2str(p,3)]);
 
-if isfield(data, 'beads_pos') && sum(hVis_cat&bead_cat&dirSel&DS)>4
-if ~adtest(deltaDSI(hVis_cat&~bead_cat&dirSel&~DS)) && ~adtest(deltaDSI(hVis_cat&bead_cat&dirSel&~DS))
-[~,p2] = ttest2(deltaDSI(hVis_cat&~bead_cat&dirSel&~DS),deltaDSI(hVis_cat&bead_cat&dirSel&~DS));
-testName2 = 'ttest';
-else
-   p2 = ranksum(deltaDSI(hVis_cat&~bead_cat&dirSel&~DS),deltaDSI(hVis_cat&bead_cat&dirSel&~DS));
-   testName2 = 'wilcoxon';
-end
-title([testName2, ', p = ' num2str(p1,3), ' | ', testName2, ', p = ' num2str(p2,3)],...
-    'FontSize',10);
+if looped_cells
+    if isfield(data, 'beads_pos') && sum(hVis_cat&bead_cat&dirSel&DS)>4
+        if ~adtest(deltaDSI(hVis_cat&~bead_cat&dirSel&~DS)) && ~adtest(deltaDSI(hVis_cat&bead_cat&dirSel&~DS))
+            [~,p2] = ttest2(deltaDSI(hVis_cat&~bead_cat&dirSel&~DS),deltaDSI(hVis_cat&bead_cat&dirSel&~DS));
+            testName2 = 'ttest';
+        else
+            p2 = ranksum(deltaDSI(hVis_cat&~bead_cat&dirSel&~DS),deltaDSI(hVis_cat&bead_cat&dirSel&~DS));
+            testName2 = 'wilcoxon';
+        end
+        title([testName2, ', p = ' num2str(p1,3), ' | ', testName2, ', p = ' num2str(p2,3)],...
+            'FontSize',10);
+    else
+        testName2 = ''; p1 = [];
+    end
 else
     testName2 = ''; p1 = [];
 end
 
-
+pos3 = [0.1 0.05 0.9 0.1];
+subplot('Position',pos3); axis off
 if isfield(data, 'beads_pos')
     if ~adtest(deltaDSI(hVis_cat&dirSel&DS))
         [~,p1] = ttest(deltaDSI(hVis_cat&dirSel&DS));
@@ -1671,8 +1742,7 @@ else
     text(0.5,0.5,{'-----------------------','All cells',['DS cells, ' testName1, ' p  =  ' ' | OS cells, ' testName2 ' p = ' ]},...
         'HorizontalAlignment','center','Fontsize',10)
 end
-pos3 = [0.1 0.05 0.9 0.1];
-subplot('Position',pos3); axis off
+
 
 %%
 %% save

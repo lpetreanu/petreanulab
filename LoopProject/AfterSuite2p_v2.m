@@ -10,11 +10,11 @@
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-all_ROI = 1;
+all_ROI = 1; % I usually kee this at 1, selection is done in the next function
 
-foldername = 'E:\TempData\CMloop45\20200908\pos1Anesth_stim'; % folder where all the files are located
+foldername = 'E:\TempData\CMloop44\20200907\pos1_stim'; % folder where all the files are located
 % GenericFile_name = 'CMloop34_pos4*'; % 20190828_CMad47_pos1__00003
-DataID = 'CMloop45_pos1_anesth';
+DataID = 'CMloop44_pos1';
 skipNofFrames = 1; % to skip the extraction of number of frames from tiff files (using SI tiff reader), use s2p output instead
 
 isFlyBack = 1; % Only matters if multiple planes
@@ -55,6 +55,7 @@ saveName = ['Ftraces_' DataID '_' dt];
 
 disp(['number of planes: ', num2str(length(index))])
 disp(saveFolder); disp(saveName);
+disp(['All ROIs?: ', num2str(all_ROI)])
 
 %% Chopp all the Fall file of each plane
 for j = 1:length(index)
@@ -93,7 +94,7 @@ for j = 1:length(index)
     if all_ROI == 1
         Ftraces_all{j}.data = F;
     else
-        Ftraces_all{j}.data = F(is_cell(1:lastROI),:);
+        Ftraces_all{j}.data = F(logical(iscell(:,1)),:);
     end
     
     Ftraces_all{j}.Fneu = Fneu;

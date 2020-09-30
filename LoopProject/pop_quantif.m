@@ -3,9 +3,10 @@
 
 % pop_quantif({q_18_1,q_18_2,q_18_3_90um,q_18_3_150um,q_18_3_1,q_18_3_2,q_19_1,q_19_2,q_19_3,q_19_4,q_19_5_1,q_19_5_2,q_19_6_1,q_19_6_2,q_22_1_1,q_22_1_2,q_22_1_3,q_22_1_4,q_22_2},1)
 % l33_p2,l33_p3,l33_p4,l33_p5,l34_p1,l34_p2,l34_p3,l34_p4,l38_pos2,l38_pos3,l40_pos1,l40_pos2,l40_pos3,l41_pos1,l41_pos2,l41_pos3
-function pop_quantif(data_list,saveFig)
-%% Preanbule
+function pop_quantif(data_list,looped_cells,saveFig)
+% looped_cells = 0 if bead+ cells have not been systematically identified in the dataset 
 
+%% Preanbule
 magn_th = 0.05; %0.15
 % ############################################
 
@@ -54,12 +55,16 @@ final_beads = zeros(2,3);
 ImpactOfLaser_Vis = []; ImpactOfLaser_Spont = [];
 pos = []; neg =[]; nochange = [];
 for i = 1:length(data_list)
+    if looped_cells == 1
     try
         selec = [selec ; data_list{i}.bead_selection']; % legacy version (before TG L5 data - June 2020)
     catch
         selec = [selec ; data_list{i}.beadID.bead_pos'];
     end
-
+    else
+        selec = [selec ; ones(size(data_list{i}.bestVisResp.h_vis))'];
+        color_bp = [0 0 0];
+    end
     meanResp_vis = [meanResp_vis ; data_list{i}.bestVisResp.meanResp_selec];
     h_vis = [h_vis data_list{i}.bestVisResp.h_vis];
     pos = [pos data_list{i}.bestVisResp.pos];
@@ -127,6 +132,7 @@ text(magn_th, yl(1),num2str(magn_th),...
 title([{'Effect Of Laser on Best Significant Vis Resp'},{['Significant Resp: ttest w/ alpha = ',num2str(alpha(1))]}])
 subplot(1,2,2); hold on
 xl = xlim; yl = ylim;
+if looped_cells
 text(xl(1),yl(2),...
     [{'bead-'},...
     {['vis resp: n = ' num2str(nVisResp(2)),'/', num2str(nBeadsNeg),' ; ',num2str(nVisResp(2)/nBeadsNeg,2)]},...
@@ -142,7 +148,8 @@ text(xl(1),yl(2),...
     {['laser OFF, : ' num2str(mean_bp(1),3) '+- ' num2str(sd_bp(1),3)]},...
     {['laser ON, : ' num2str(mean_bp(2),3) '+- ' num2str(sd_bp(2),3)]},...
     {['ttest, p = ',num2str(p_bp,3)]}],...
-    'HorizontalAlignment','right','VerticalAlignment','top')   
+    'HorizontalAlignment','right','VerticalAlignment','top') 
+end
 text(xl(1),yl(1),...
     [{['population t-test, p = ',num2str(p_all,2), ', n = ', num2str(sum(h_vis'&respMagn))]},...
     {['Vis. Resp. Magnitude, bead+ vs bead-; ttest: p = ', num2str(p_VisResp,3)]}],...
@@ -344,6 +351,7 @@ yyaxis right
 yticks([])
 ylabel({'Plotted:','All Cells'})
 
+if looped_cells
 subplot(3,3,2);hold on
 s1 = scatter(squeeze(meanResp_spont(~selec,1)),squeeze(meanResp_spont(~selec,2)),...
     'MarkerFaceColor',color_bn,'MarkerEdgeColor','none');
@@ -379,6 +387,7 @@ xlim([axismin axismax]) ; ylim([axismin axismax])
 plot([-axismax axismax],[-axismax  axismax ],'k:');
 axis equal
 xlabel({'Laser OFF','dF/F'}); ylabel({'Laser ON','dF/F'})
+end
 
 subplot(3,3,6);hold on
 s2 = scatter(squeeze(meanResp_spont(selec,1)),squeeze(meanResp_spont(selec,2)),...
@@ -398,6 +407,7 @@ yyaxis right
 yticks([])
 ylabel({'Plotted:','Mean +- 3*sd of laser off'});
 
+if looped_cells
 subplot(3,3,5);hold on
 s1 = scatter(squeeze(meanResp_spont(~selec,1)),squeeze(meanResp_spont(~selec,2)),...
     'MarkerFaceColor',color_bn,'MarkerEdgeColor','none');
@@ -417,6 +427,7 @@ axismin = min(min(xl), min(yl));
 xlim([axismin axismax]) ; ylim([axismin axismax])
 plot([-axismax axismax],[-axismax  axismax ],'k:');
 axis equal
+end
 
 subplot(3,3,7)
 xl = xlim; yl = ylim;
@@ -452,15 +463,19 @@ deltaLaser{1} = meanResp_spont(~selec,1)-meanResp_spont(~selec,2);
 deltaLaser{2} = meanResp_spont(selec,1)-meanResp_spont(selec,2);
 
 figure;
+if looped_cells
 subplot(3,2,1);
 h1 = histogram(deltaLaser{1});
 h1.EdgeColor = 'none';
 ylabel('Cell #')
 title('bead - ')
+end
 
 subplot(3,2,5);
 h2 = histogram(deltaLaser{2});
+if looped_cells
 h2.BinWidth = h1.BinWidth;
+end
 h2.FaceColor = color_bp;
 h2.EdgeColor = 'none';
 xlabel({'Net effect of laser','All data'})
@@ -472,6 +487,7 @@ text(xl(2),yl(2),{'inhibition'},...
 ylabel('Cell #')
 title('bead + ')
 
+if looped_cells
 subplot(3,2,3); hold on
 h3 = histogram(deltaLaser{1},'Normalization','probability');
 h4 = histogram(deltaLaser{2},'Normalization','probability');
@@ -490,10 +506,13 @@ yl = ylim;
 plot([0 0],yl,'k:')
 xlim([mean_bn(1)-3*sd_bn(1) mean_bn(1)+3*sd_bn(1)])
 title('bead - ')
+end
 
 subplot(3,2,6);  hold on
 h2 = histogram(deltaLaser{2});
+if looped_cells
 h2.BinWidth = h1.BinWidth;
+end
 h2.FaceColor = color_bp;
 h2.EdgeColor = 'none';
 yl = ylim;
@@ -514,6 +533,7 @@ text(double(xl(2)),yl(2),{'inhibition'},...
     'HorizontalAlignment','Right','VerticalAlignment','Top')
 sgtitle('Effect Of Laser on Spont Activity, All Cells')
 
+if looped_cells
 subplot(3,2,4); hold on
 h3 = histogram(deltaLaser{1},'Normalization','probability');
 h4 = histogram(deltaLaser{2},'Normalization','probability');
@@ -526,6 +546,8 @@ title('bead+ vs bead-, normalized')
 xlim([mean_bn(1)-3*sd_bn(1) mean_bn(1)+3*sd_bn(1)])
 yl = ylim;
 plot([0 0],yl,'k:')
+end
+
 if saveFig
     saveas(gcf,[saveDir filesep tv '_ImpactOfLaserSpont_Histo'],'fig');
     screen2png([saveDir filesep tv '_ImpactOfLaserSpont_Histo']);
@@ -547,6 +569,9 @@ x2 = [repmat(1,final_beads(1,1),1) ; repmat(2,final_beads(1,2),1); repmat(3,fina
     repmat(1,final_beads(2,1),1) ; repmat(2,final_beads(2,2),1); repmat(3,final_beads(2,3),1)];
 [~,chi2stat,pval] = crosstab(x1,x2);
 
+if looped_cells ==0
+    final_beads(1,:) = sum(final_beads,1);
+end
 final_beads_ratio = final_beads./[sum(selec);sum(~selec)];
 figure;
 subplot(1,3,1); hold on
@@ -728,10 +753,18 @@ subplot(1,2,1);hold on
 plot(ImpactOfLaser_mean_bp,'Color',color_bp)
 plot(ImpactOfLaser_mean_bn,'Color',color_bn)
 % fill([0:20],[ImpactOfLaser_mean_bn-ImpactOfLaser_sem_bn flip(ImpactOfLaser_mean_bn+ImpactOfLaser_sem_bn)],'Color',color_bn)
-plot([ImpactOfLaser_mean_bn-ImpactOfLaser_sem_bn],'b:')
-plot([ImpactOfLaser_mean_bn+ImpactOfLaser_sem_bn],'b:')
-plot([ImpactOfLaser_mean_bp-ImpactOfLaser_sem_bp],'r:')
-plot([ImpactOfLaser_mean_bp+ImpactOfLaser_sem_bp],'r:')
+plot([ImpactOfLaser_mean_bn-ImpactOfLaser_sem_bn],':','Color',color_bn)
+plot([ImpactOfLaser_mean_bn+ImpactOfLaser_sem_bn],':','Color',color_bn)
+plot([ImpactOfLaser_mean_bp-ImpactOfLaser_sem_bp],':','Color',color_bp)
+plot([ImpactOfLaser_mean_bp+ImpactOfLaser_sem_bp],':','Color',color_bp)
+plot([0 length(ImpactOfLaser_mean_bp)],[0 0],'k:')
+xlabel('Stim repetition #')
+ylabel([{'Impact of Laser'},{'(BestVisResp+Laser) - (BestVisResp)'}])
+yl=ylim;
+xlim([0 length(ImpactOfLaser_mean_bp)+1])
+text(0,0,'\it inhib.','HorizontalAlignment','Left','VerticalAlignment','top')
+text(0,0,'\it exc.','HorizontalAlignment','Left','VerticalAlignment','bottom')
+title('Indiv trials')
 
 subplot(1,2,2); hold on
 % binned_bp(1) = mean(ImpactOfLaser_mean_bp(1:10));
@@ -763,6 +796,17 @@ plot([1-offset 1-offset],...
 plot([2-offset 2-offset],...
     [binned_bp_test_mean(2)-binned_bp_test_sem(2) binned_bp_test_mean(2)+binned_bp_test_sem(2)],...
     'k-')
+ylim(yl)
+xticks([1 2])
+xticklabels([{'Stim 1-10'},{'Stim 11-20'}])
+title('Trials grouped')
+
+sgtitle('Adaptation to opto stim on best vis stim')
+
+if saveFig
+%     saveas(gcf,[saveDir filesep tv '_ImpactOfLaserSpont_Diff_Bar'],'fig');
+    screen2png([saveDir filesep tv '_Adaptation']);
+end
 %%
 diary off;
 end
