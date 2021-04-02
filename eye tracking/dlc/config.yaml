@@ -1,0 +1,115 @@
+    # Project definitions (do not edit)
+Task: EyeTracking
+scorer: Marina
+date: Mar1
+multianimalproject: false
+
+    # Project path (change when moving around)
+project_path: D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01
+
+    # Annotation data set configuration (and individual video cropping parameters)
+video_sets:
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF131_070415_eye_FIXED_004.avi:
+    crop: 0, 368, 0, 260
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF131_070415_eye_FIXED_169.avi:
+    crop: 0, 368, 0, 260
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF122_180215_eye_4b1.avi:
+    crop: 0, 320, 0, 250
+  ? D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF183_150116_Loc9a_2016-01-15-153036-0000.avi
+  : crop: 0, 368, 0, 264
+  ? D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF183_180116_Loc11a_2016-01-18-140641-0000.avi
+  : crop: 0, 368, 0, 264
+  ? D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF183_180116_Loc11a_2016-01-18-143229-0000.avi
+  : crop: 0, 368, 0, 264
+  ? D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF183_220116_Loc15a_2016-01-22-140913-0000.avi
+  : crop: 0, 368, 0, 264
+  ? D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF183_220116_Loc15a_2016-01-22-145419-0000.avi
+  : crop: 0, 368, 0, 264
+  ? D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF183_230116_Loc16a_2016-01-23-161748-0000.avi
+  : crop: 0, 368, 0, 264
+  ? D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF183_230116_Loc16a_2016-01-23-165931-0000.avi
+  : crop: 0, 368, 0, 264
+  ? D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF183_260116_Loc18a_2016-01-26-150251-0000.avi
+  : crop: 0, 368, 0, 264
+  ? D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF183_260116_Loc18a_2016-01-26-152539-0000.avi
+  : crop: 0, 368, 0, 264
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF209_050516_6a_259.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\ec_MF209_050516_6a_7.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_060516_7a_0.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_060516_7a_288.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_070516_8b_0.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_070516_8b_213.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_080516_9a_1.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_080516_9a_223.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_100516_11a_0.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_100516_11a_253.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_110516_12a_3.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_110516_12a_212.avi:
+    crop: 0, 224, 0, 180
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_190516_18a_29.avi:
+    crop: 0, 240, 0, 200
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_190516_18a_205.avi:
+    crop: 0, 240, 0, 200
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_230516_20a0.avi:
+    crop: 0, 240, 0, 200
+  D:\PetreanuLab\Code\DeepLabCut\examples\EyeTracking-Marina-2021-03-01\videos\MF209_230516_20a241.avi:
+    crop: 0, 240, 0, 200
+bodyparts:
+- pupilW
+- pupilNW
+- pupilN
+- pupilNE
+- pupilE
+- pupilSE
+- pupilS
+- pupilSW
+- eyeCornerTemp
+- eyeCornerNasal
+- CRW
+- CRE
+start: 0
+stop: 1
+numframes2pick: 10
+
+    # Plotting configuration
+skeleton: []
+skeleton_color: black
+pcutoff: 0.6
+dotsize: 12
+alphavalue: 0.7
+colormap: plasma
+
+    # Training,Evaluation and Analysis configuration
+TrainingFraction:
+- 0.95
+iteration: 0
+default_net_type: resnet_50
+default_augmenter: default
+snapshotindex: -1
+batch_size: 8
+
+    # Cropping Parameters (for analysis and outlier frame detection)
+cropping: false
+croppedtraining: false
+    #if cropping is true for analysis, then set the values here:
+x1: 0
+x2: 640
+y1: 277
+y2: 624
+
+    # Refinement configuration (parameters from annotation dataset configuration also relevant in this stage)
+corner2move2:
+- 50
+- 50
+move2corner: true
