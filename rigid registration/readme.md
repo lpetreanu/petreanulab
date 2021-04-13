@@ -11,3 +11,23 @@ Example (frame-by-frame registration):
 
 Can also do registration on a trial-by-trial basis (more suited to low SNR, anesthetized recordings where movement is expected to primarily be due to drift),
 just change the last argument (byFrame) to 0. 
+
+### To create registration target:
+**trial average**
+ImageJ: 
+- concatenate several trials (Image >> Stacks >> Tools >> Concatenate)
+- run extractTargetMultPlane_MF.txt
+
+**registered trial average**
+
+``` load('Reg_MF379_240818_Loc2_MaxProjection_Plane_1.mat')
+p1 = mean(MaxProjectionPlane,3);
+figure,imagesc(p1)
+colormap gray; cmap = colormap;
+imwrite(p1,cmap,'Pl1.tif')
+``` 
+
+**registered trial average with subset of trials**
+```
+p1 = mean(MaxProjectionPlane(:,:,[4,6,8,9]),3);
+```
