@@ -1,0 +1,4 @@
+run("Make Substack...", "  slices=1-205-5");
+run("Z Project...", "projection=[Average Intensity]");
+saveAs("Tiff", "E:/MF371/Tr1Pl1.tif");
+
